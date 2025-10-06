@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"log"
 	"os"
@@ -11,12 +12,25 @@ import (
 	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 )
 
+//go:embed quickjs.plugin.wasm
+var quickJSWasm []byte
+
+//go:embed dyn-hello.wasm
+var dynHelloWasm []byte
+
 func main() {
-	wasmPath := "./static-hello.wasm"
+	quickJSwasmPath := "./quickjs.plugin.wasm"
+	quickJSwasmArgs := []string{}
+	quickJSwasmBin := filepath.Base(quickJSwasmPath)
+	quickJSwasm, err := os.ReadFile(quickJSwasmPath)
+	if err != nil {
+		log.Fatalf("read quickjs wasm: %v", err)
+	}
+
+	wasmPath := "./dyn-hello.wasm"
 	wasmArgs := []string{}
 	// Binary name without path.
 	wasmBin := filepath.Base(wasmPath)
-
 	wasm, err := os.ReadFile(wasmPath)
 	if err != nil {
 		log.Fatalf("read wasm: %v", err)
@@ -28,6 +42,25 @@ func main() {
 	ctx := context.Background()
 	rt := wazero.NewRuntimeWithConfig(ctx, rtc)
 	defer rt.Close(ctx)
+	wasi_snapshot_preview1.MustInstantiate(ctx, rt)
+
+	quickJSModConfig := wazero.NewModuleConfig().
+		WithName("javy-default-plugin-v1").
+		WithStdout(os.Stdout).
+		WithStderr(os.Stderr).
+		WithStdin(os.Stdin).
+		WithArgs(append([]string{quickJSwasmBin}, quickJSwasmArgs...)...)
+
+	quickJSMod, err := rt.CompileModule(ctx, quickJSwasm)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error compiling quickjs wasm: %v\n", err)
+		return
+	}
+	_, err = rt.InstantiateModule(ctx, quickJSMod, quickJSModConfig)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error instantiating quickjs wasm: %v\n", err)
+		return
+	}
 
 	cfg := wazero.NewModuleConfig().
 		WithStdout(os.Stdout).
@@ -41,40 +74,9 @@ func main() {
 		return
 	}
 
-	wasi_snapshot_preview1.MustInstantiate(ctx, rt)
 	_, err = rt.InstantiateModule(ctx, compiledMod, cfg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error instantiating wasm binary: %v\n", err)
 		return
 	}
-
-	// quickJSWasm, err := os.ReadFile("./quickjs.plugin.wasm")
-	// if err != nil {
-	// 	log.Fatalf("read wasm: %v", err)
-	// }
-
-	// _, err = r.Instantiate(ctx, quickJSWasm)
-	// if err != nil {
-	// 	log.Fatalf("instantiate wasm: %v", err)
-	// }
-
-	// modConfig := wazero.NewModuleConfig().
-	// 	WithStdout(os.Stdout).
-	// 	WithStderr(os.Stderr)
-
-	// mod, err := r.InstantiateWithConfig(ctx, wasm, modConfig)
-	// if err != nil {
-	// 	log.Fatalf("instantiate wasm: %v", err)
-	// }
-	// if mod == nil {
-	// 	log.Fatalf("module is nil")
-	// }
-	// if mod.ExportedFunction("main") == nil {
-	// 	log.Fatalf("function main is not exported")
-	// }
-
-	// _, err = mod.ExportedFunction("main").Call(ctx)
-	// if err != nil {
-	// 	log.Fatalf("call wasm: %v", err)
-	// }
 }
