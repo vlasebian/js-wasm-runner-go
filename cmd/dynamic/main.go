@@ -12,12 +12,6 @@ import (
 	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 )
 
-//go:embed quickjs.plugin.wasm
-var quickJSWasm []byte
-
-//go:embed dyn-hello.wasm
-var dynHelloWasm []byte
-
 func main() {
 	quickJSwasmPath := "./quickjs.plugin.wasm"
 	quickJSwasmArgs := []string{}
