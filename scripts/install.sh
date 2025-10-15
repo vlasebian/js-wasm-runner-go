@@ -71,10 +71,17 @@ build_quickjs_ng() {
 
 	if [ ! -f "$WASM_DIR/qjsc.wasm" ] || [ ! -f "$WASM_DIR/qjs.wasm" ]; then
 		cmake -S "$PKG_DIR/quickjs-ng" -B "$PKG_DIR/quickjs-ng/build" -DCMAKE_TOOLCHAIN_FILE="$PKG_DIR/wasi-sdk/share/cmake/wasi-sdk-p1.cmake"
-		make -C "$PKG_DIR/quickjs-ng/build" qjsc
-		make -C "$PKG_DIR/quickjs-ng/build" qjs_exe
+		make -C "$PKG_DIR/quickjs-ng/build" qjs qjsc qjs_exe
 		cp "$PKG_DIR/quickjs-ng/build/qjsc" "$WASM_DIR/qjsc.wasm"
 		cp "$PKG_DIR/quickjs-ng/build/qjs" "$WASM_DIR/qjs.wasm"
+		$PKG_DIR/wasi-sdk/bin/clang \
+			--target=wasm32-wasip1 \
+			--sysroot $PKG_DIR/wasi-sdk/share/wasi-sysroot \
+			-O3 \
+			-Wl,--export-all \
+			-Wl,--no-entry \
+			-o $WASM_DIR/libqjs.wasm \
+			$PKG_DIR/quickjs-ng/build/libqjs.a 
 	else
 		echo "quickjs-ng wasm artifacts already exist in $WASM_DIR"
 	fi

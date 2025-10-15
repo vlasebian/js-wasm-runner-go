@@ -15,10 +15,6 @@ clean-deps:
 run-qjs-plain-js:
 	go run cmd/qjs-plain-js/main.go
 
-# TODO: not working yet.
-# run-qjs-wasm-js:
-# 	go run cmd/qjs-wasm-js/main.go
-
 run-javy-dyn:
 	./bin/javy emit-plugin -o wasm/quickjs.plugin.wasm
 	./bin/javy build -o wasm/dyn-hello.wasm -C plugin=wasm/quickjs.plugin.wasm js/console-hello.js
@@ -27,3 +23,6 @@ run-javy-dyn:
 run-javy-static:
 	./bin/javy build -o wasm/static-hello.wasm js/console-hello.js
 	go run cmd/javy-static/main.go
+	
+run-codec-example:
+	go run cmd/codec-example/main.go
