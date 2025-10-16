@@ -1,0 +1,46 @@
+// CPU-bound: Prime number computation
+{
+    const limit = 100000;
+    const primes = [];
+    for (let i = 2; i < limit; i++) {
+      let isPrime = true;
+      for (let j = 2; j * j <= i; j++) {
+        if (i % j === 0) {
+          isPrime = false;
+          break;
+        }
+      }
+      if (isPrime) primes.push(i);
+    }
+    // console.log("Prime count:", primes.length);
+  }
+  
+  // Memory + object allocation test
+  {
+    const arr = [];
+    for (let i = 0; i < 1e6; i++) {
+      arr.push({ x: i, y: i * 2 });
+    }
+    // console.log("Objects allocated:", arr.length);
+  }
+  
+  // String manipulation test
+  {
+    let str = "";
+    for (let i = 0; i < 1e5; i++) {
+      str += "a";
+    }
+    // console.log("String length:", str.length);
+  }
+  
+  // Math-heavy loop
+  {
+    let total = 0;
+    for (let i = 0; i < 1e7; i++) {
+      total += Math.sin(i) * Math.cos(i);
+    }
+    // console.log("Math result:", total.toFixed(3));
+  }
+  
+  // console.log("✅ Done.");
+  

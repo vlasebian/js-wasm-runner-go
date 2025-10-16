@@ -26,3 +26,9 @@ run-javy-static:
 	
 run-codec-example:
 	go run cmd/codec-example/main.go
+
+stress:
+	/bin/wazero run -mount=/tmp -mount=. ./wasm/qjs.wasm --memory-limit 4096 --stack-size 2 ./js/stress-test.qjs
+	
+bench:
+	./scripts/bench.sh
