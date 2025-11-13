@@ -29,3 +29,6 @@ run-codec-example:
 
 bench:
 	./scripts/bench.sh
+
+clean:
+	rm *.txt *.csv

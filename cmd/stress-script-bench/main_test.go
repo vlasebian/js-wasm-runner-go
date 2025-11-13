@@ -17,7 +17,21 @@ import (
 // Add more benchmarks (e.g., BenchmarkTargetFunctionLarge) for different inputs/sizes.
 // For allocations/memory: go test ./cmd/wasm-benchmark -bench=. -benchmem
 
-func BenchmarkWASM(b *testing.B) {
+func BenchmarkStressScript(b *testing.B) {
+	mode := os.Getenv("CODEC_RUNNER")
+	switch {
+	case mode == "goja":
+		benchmarkGoja(b)
+		return
+	case mode == "wasm":
+		benchmarkWASM(b)
+		return
+	default:
+		b.Fatal("Please set CODEC_RUNNER environment variable to either 'Goja' or 'WASM'")
+	}
+}
+
+func benchmarkWASM(b *testing.B) {
 	wasmPath := "../../wasm/qjs.wasm"
 	wasm, err := os.ReadFile(wasmPath)
 	if err != nil {
@@ -66,7 +80,7 @@ func BenchmarkWASM(b *testing.B) {
 	}
 }
 
-func BenchmarkGoja(b *testing.B) {
+func benchmarkGoja(b *testing.B) {
 	vm := goja.New()
 	script, err := os.ReadFile("../../js/bench.qjs")
 	if err != nil {
